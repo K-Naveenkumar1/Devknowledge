@@ -4,9 +4,14 @@ import Link from "next/link";
 import { useState } from "react";
 import { ArrowRight, Github } from "lucide-react";
 import { motion } from "framer-motion";
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
+
 
 export default function LoginPage() {
     const [loading, setLoading] = useState(false);
+    const { login } = useAuth();
+    const router = useRouter();
 
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
@@ -14,7 +19,8 @@ export default function LoginPage() {
         // Simulate login
         setTimeout(() => {
             setLoading(false);
-            window.location.href = "/";
+            login();
+            router.push("/dashboard");
         }, 1500);
     };
 

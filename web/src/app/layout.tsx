@@ -19,6 +19,8 @@ export const metadata: Metadata = {
 
 import AppLayout from "@/components/AppLayout";
 import { IntegrationProvider } from "@/context/IntegrationContext";
+import { AuthProvider } from "@/context/AuthContext";
+
 
 export default function RootLayout({
   children,
@@ -28,11 +30,13 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className="antialiased">
-        <IntegrationProvider>
-          <AppLayout>
-            {children}
-          </AppLayout>
-        </IntegrationProvider>
+        <AuthProvider>
+          <IntegrationProvider>
+            <AppLayout>
+              {children}
+            </AppLayout>
+          </IntegrationProvider>
+        </AuthProvider>
       </body>
     </html>
   );

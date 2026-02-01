@@ -1,24 +1,43 @@
 "use client";
 
 import React from "react";
-import { Slack, Hash, ExternalLink, ShieldCheck, MessageSquare, Zap } from "lucide-react";
+import { Slack, Hash, ExternalLink, ShieldCheck, MessageSquare, Zap, CheckCircle2 } from "lucide-react";
+import { useIntegrations } from "@/context/IntegrationContext";
+
 
 export default function SlackPage() {
+    const { integrations, connectTool, disconnectTool } = useIntegrations();
+    const isConnected = integrations.slack;
+
+    const toggleConnection = () => {
+        if (isConnected) {
+            disconnectTool("slack");
+        } else {
+            connectTool("slack");
+        }
+    };
+
     return (
         <div className="p-8 max-w-6xl mx-auto">
             <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-4">
-                    <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-xl">
-                        <Slack className="h-8 w-8 text-[#E01E5A]" />
+                    <div className={`p-3 border rounded-xl transition-colors ${isConnected ? "bg-pink-500/10 border-pink-500/30" : "bg-zinc-900 border-zinc-800"}`}>
+                        <Slack className={`h-8 w-8 ${isConnected ? "text-pink-500" : "text-[#E01E5A]"}`} />
                     </div>
                     <div>
                         <h1 className="text-3xl font-bold text-white">Slack Integration</h1>
                         <p className="text-zinc-400">Capture decisions and context from team conversations.</p>
                     </div>
                 </div>
-                <button className="flex items-center gap-2 px-6 py-2.5 bg-[#4A154B] hover:bg-[#611f69] text-white rounded-lg font-medium transition-all">
-                    <Slack className="h-5 w-5" />
-                    Connect Slack Workspace
+                <button
+                    onClick={toggleConnection}
+                    className={`flex items-center gap-2 px-6 py-2.5 rounded-lg font-medium transition-all ${isConnected
+                            ? "bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700"
+                            : "bg-[#4A154B] hover:bg-[#611f69] text-white"
+                        }`}
+                >
+                    {isConnected ? <CheckCircle2 className="h-5 w-5" /> : <Slack className="h-5 w-5" />}
+                    {isConnected ? "Connected" : "Connect Slack Workspace"}
                 </button>
             </div>
 
@@ -34,12 +53,20 @@ export default function SlackPage() {
                         </p>
                         <div className="flex flex-wrap gap-2">
                             {['#engineering', '#deployments', '#prod-issues', '#tech-design'].map(channel => (
-                                <div key={channel} className="px-3 py-1 rounded-full bg-zinc-950 border border-zinc-800 text-zinc-500 text-sm flex items-center gap-2">
+                                <div key={channel} className={`px-3 py-1 rounded-full border transition-colors flex items-center gap-2 text-sm ${isConnected ? "bg-pink-500/10 border-pink-500/20 text-pink-500" : "bg-zinc-950 border-zinc-800 text-zinc-500"
+                                    }`}>
                                     <Hash className="h-3 w-3" />
                                     {channel.substring(1)}
+                                    {isConnected && <CheckCircle2 className="h-3 w-3 ml-1" />}
                                 </div>
                             ))}
                         </div>
+                        {isConnected && (
+                            <div className="mt-8 p-4 bg-emerald-500/5 border border-emerald-500/10 rounded-xl flex items-center gap-3">
+                                <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                                <p className="text-emerald-500 text-sm font-medium">Real-time synchronization active for selected channels.</p>
+                            </div>
+                        )}
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

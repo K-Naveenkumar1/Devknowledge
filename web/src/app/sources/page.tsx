@@ -2,8 +2,14 @@
 
 import React from "react";
 import { Database, Search, Filter, RefreshCw, Plus } from "lucide-react";
+import { useIntegrations } from "@/context/IntegrationContext";
+import IntegrationGrid from "@/components/IntegrationGrid";
+
 
 export default function SourcesPage() {
+    const { integrations } = useIntegrations();
+    const hasConnectedSources = Object.values(integrations).some(status => status === true);
+
     return (
         <div className="p-8 max-w-6xl mx-auto">
             <div className="flex items-center justify-between mb-8">
@@ -40,15 +46,26 @@ export default function SourcesPage() {
                 </div>
 
                 <div className="divide-y divide-zinc-800">
-                    <div className="p-12 flex flex-col items-center justify-center text-center">
-                        <div className="h-16 w-16 bg-zinc-800/50 rounded-2xl flex items-center justify-center mb-4 border border-zinc-700">
-                            <Database className="h-8 w-8 text-zinc-600" />
+                    {!hasConnectedSources ? (
+                        <div className="p-12 flex flex-col items-center justify-center text-center">
+                            <div className="h-16 w-16 bg-zinc-800/50 rounded-2xl flex items-center justify-center mb-4 border border-zinc-700">
+                                <Database className="h-8 w-8 text-zinc-600" />
+                            </div>
+                            <h3 className="text-white font-semibold">No sources connected</h3>
+                            <p className="text-zinc-500 max-w-sm mt-1 mb-6">
+                                Connect integrations to see your repositories, documentation spaces, and channels here.
+                            </p>
+                            <IntegrationGrid />
                         </div>
-                        <h3 className="text-white font-semibold">No sources connected</h3>
-                        <p className="text-zinc-500 max-w-sm mt-1 mb-6">
-                            Connect integrations to see your repositories, documentation spaces, and channels here.
-                        </p>
-                    </div>
+                    ) : (
+                        <div className="p-12 text-center text-zinc-500">
+                            {/* This would list connected repositories/channels in a real app */}
+                            <p>Displaying sources for connected integrations...</p>
+                            <div className="mt-8">
+                                <IntegrationGrid />
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

@@ -1,24 +1,43 @@
 "use client";
 
 import React from "react";
-import { FileText, Search, ExternalLink, ShieldCheck, BookOpen, Sparkles } from "lucide-react";
+import { FileText, Search, ExternalLink, ShieldCheck, BookOpen, Sparkles, CheckCircle2 } from "lucide-react";
+import { useIntegrations } from "@/context/IntegrationContext";
+
 
 export default function ConfluencePage() {
+    const { integrations, connectTool, disconnectTool } = useIntegrations();
+    const isConnected = integrations.confluence;
+
+    const toggleConnection = () => {
+        if (isConnected) {
+            disconnectTool("confluence");
+        } else {
+            connectTool("confluence");
+        }
+    };
+
     return (
         <div className="p-8 max-w-6xl mx-auto">
             <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-4">
-                    <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-xl">
-                        <FileText className="h-8 w-8 text-blue-400" />
+                    <div className={`p-3 border rounded-xl transition-colors ${isConnected ? "bg-blue-400/10 border-blue-400/30" : "bg-zinc-900 border-zinc-800"}`}>
+                        <FileText className={`h-8 w-8 ${isConnected ? "text-blue-400" : "text-blue-400"}`} />
                     </div>
                     <div>
                         <h1 className="text-3xl font-bold text-white">Confluence Integration</h1>
                         <p className="text-zinc-400">Index your technical documentation and wikis.</p>
                     </div>
                 </div>
-                <button className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition-all">
-                    <Search className="h-5 w-5" />
-                    Index Documentation
+                <button
+                    onClick={toggleConnection}
+                    className={`flex items-center gap-2 px-6 py-2.5 rounded-lg font-medium transition-all ${isConnected
+                            ? "bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700"
+                            : "bg-blue-600 hover:bg-blue-500 text-white"
+                        }`}
+                >
+                    {isConnected ? <CheckCircle2 className="h-5 w-5" /> : <Search className="h-5 w-5" />}
+                    {isConnected ? "Connected" : "Index Documentation"}
                 </button>
             </div>
 
@@ -40,16 +59,23 @@ export default function ConfluencePage() {
 
                     <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6">
                         <h2 className="text-xl font-semibold text-white mb-6">Connected Spaces</h2>
-                        <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed border-zinc-800 rounded-xl">
-                            <div className="p-4 bg-zinc-950 rounded-full mb-4">
-                                <FileText className="h-8 w-8 text-zinc-700" />
+                        <div className={`flex flex-col items-center justify-center py-12 text-center border-2 border-dashed rounded-xl transition-all ${isConnected ? "border-blue-500/30 bg-blue-500/5" : "border-zinc-800 bg-zinc-950"
+                            }`}>
+                            <div className={`p-4 rounded-full mb-4 transition-colors ${isConnected ? "bg-blue-500/20" : "bg-zinc-900"}`}>
+                                {isConnected ? <CheckCircle2 className="h-8 w-8 text-blue-400" /> : <FileText className="h-8 w-8 text-zinc-700" />}
                             </div>
-                            <h3 className="text-zinc-300 font-medium">No spaces synchronized yet</h3>
+                            <h3 className="text-zinc-300 font-medium">{isConnected ? "Documentation Synchronized" : "No spaces synchronized yet"}</h3>
                             <p className="text-zinc-500 text-sm max-w-xs mt-2">
-                                Synchronize your Confluence spaces to enable AI-powered documentation search.
+                                {isConnected
+                                    ? "3 documentation spaces are currently indexed and available for the AI assistant."
+                                    : "Synchronize your Confluence spaces to enable AI-powered documentation search."
+                                }
                             </p>
-                            <button className="mt-6 px-4 py-2 border border-zinc-700 hover:border-zinc-500 hover:bg-zinc-800 text-zinc-300 rounded-lg transition-all text-sm font-medium">
-                                Add Space
+                            <button
+                                onClick={!isConnected ? toggleConnection : undefined}
+                                className="mt-6 px-4 py-2 border border-zinc-700 hover:border-zinc-500 hover:bg-zinc-800 text-zinc-300 rounded-lg transition-all text-sm font-medium"
+                            >
+                                {isConnected ? "Manage Spaces" : "Add Space"}
                             </button>
                         </div>
                     </div>

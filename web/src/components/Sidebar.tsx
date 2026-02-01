@@ -12,15 +12,22 @@ import {
     Slack,
     FileText,
     Zap,
-    Layers
+    Layers,
+    LogOut
 } from "lucide-react";
+
 import { motion } from "framer-motion";
+import { useIntegrations } from "@/context/IntegrationContext";
+import { useAuth } from "@/context/AuthContext";
+
+
 
 const navItems = [
-    { name: "Overview", icon: Home, href: "/" },
+    { name: "Overview", icon: Home, href: "/dashboard" },
     { name: "AI Assistant", icon: MessageSquare, href: "/ai-chat" },
     { name: "Knowledge Sources", icon: Database, href: "/sources" },
 ];
+
 
 const integrationItems = [
     { name: "GitHub", icon: Github, href: "/github" },
@@ -31,6 +38,8 @@ const integrationItems = [
 
 export default function Sidebar() {
     const pathname = usePathname();
+    const { integrations } = useIntegrations();
+    const { user, logout } = useAuth();
 
     return (
         <aside className="fixed left-0 top-0 z-40 h-screen w-64 border-r border-zinc-800 bg-zinc-950/50 backdrop-blur-xl transition-transform">
@@ -84,6 +93,9 @@ export default function Sidebar() {
                     </p>
                     {integrationItems.map((item) => {
                         const isActive = pathname === item.href;
+                        const toolId = item.name.toLowerCase() as keyof typeof integrations;
+                        const isConnected = integrations[toolId];
+
                         return (
                             <Link
                                 key={item.name}
@@ -95,7 +107,10 @@ export default function Sidebar() {
                             >
                                 <item.icon className={`mr-3 h-5 w-5 transition-colors ${isActive ? "text-blue-500" : "text-zinc-500 group-hover:text-zinc-300"
                                     }`} />
-                                <span>{item.name}</span>
+                                <span className="flex-1">{item.name}</span>
+                                {isConnected && (
+                                    <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                                )}
                             </Link>
                         );
                     })}
@@ -114,14 +129,23 @@ export default function Sidebar() {
                         <span>Settings</span>
                     </Link>
 
-                    <div className="mt-4 flex items-center px-3 py-2">
-                        <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-xs font-bold text-white uppercase ring-2 ring-zinc-900">
-                            JD
+                    <div className="mt-4 flex items-center justify-between px-3 py-2 bg-zinc-900/50 rounded-xl border border-zinc-800/50">
+                        <div className="flex items-center overflow-hidden">
+                            <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-xs font-bold text-white uppercase ring-2 ring-zinc-900">
+                                {user?.name.split(" ").map(n => n[0]).join("") || "JD"}
+                            </div>
+                            <div className="ml-3 overflow-hidden">
+                                <p className="truncate text-xs font-medium text-white">{user?.name || "John Doe"}</p>
+                                <p className="truncate text-[10px] text-zinc-500">{user?.role || "Developer"}</p>
+                            </div>
                         </div>
-                        <div className="ml-3 overflow-hidden">
-                            <p className="truncate text-xs font-medium text-white">John Doe</p>
-                            <p className="truncate text-[10px] text-zinc-500">Developer</p>
-                        </div>
+                        <button 
+                            onClick={logout}
+                            className="p-1.5 text-zinc-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all"
+                            title="Log Out"
+                        >
+                            <LogOut className="h-4 w-4" />
+                        </button>
                     </div>
                 </div>
             </div>

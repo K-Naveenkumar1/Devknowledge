@@ -2,6 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Send, Bot, User, Sparkles } from "lucide-react";
+import { useIntegrations } from "@/context/IntegrationContext";
+
 
 type Message = {
     id: string;
@@ -11,11 +13,16 @@ type Message = {
 };
 
 export default function AssistantChat() {
+    const { integrations } = useIntegrations();
+    const connectedToolsCount = Object.values(integrations).filter(Boolean).length;
+
     const [messages, setMessages] = useState<Message[]>([
         {
             id: "1",
             role: "assistant",
-            content: "Hello! I'm connected to your GitHub, Jira, Confluence, and Slack. How can I help you today?",
+            content: connectedToolsCount > 0
+                ? `Hello! I&apos;m connected to ${connectedToolsCount} of your tools. How can I help you today?`
+                : "Hello! Connect your tools in the Knowledge Sources tab to get started. How can I help you today?",
             timestamp: new Date(),
         },
     ]);
@@ -50,7 +57,7 @@ export default function AssistantChat() {
                 {
                     id: (Date.now() + 1).toString(),
                     role: "assistant",
-                    content: "I'm processing that request directly with your integrated tools. Give me a moment...",
+                    content: "I&apos;m processing that request directly with your integrated tools. Give me a moment...",
                     timestamp: new Date(),
                 },
             ]);
@@ -69,7 +76,7 @@ export default function AssistantChat() {
                         DevKnowledge AI
                         <Sparkles className="h-3 w-3 text-yellow-500" />
                     </h3>
-                    <p className="text-xs text-zinc-400">Connected to 4 tools</p>
+                    <p className="text-xs text-zinc-400">Connected to {connectedToolsCount} {connectedToolsCount === 1 ? 'tool' : 'tools'}</p>
                 </div>
             </div>
 
