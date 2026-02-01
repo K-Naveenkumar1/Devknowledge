@@ -103,7 +103,6 @@ export const checkDuplicateIssue = async (newIssueText: string) => {
         return {
             isDuplicate: true, // You'd use a similarity score threshold here
             existingIssueId: docs.ids[0],
-            // @ts-ignore
             existingIssueTitle: docs.metadatas[0]?.title || "Unknown Issue",
             confidence: "High"
         };

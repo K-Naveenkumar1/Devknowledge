@@ -13,16 +13,19 @@ type Message = {
 };
 
 export default function AssistantChat() {
-    const { integrations } = useIntegrations();
+    const { integrations, sources } = useIntegrations();
     const connectedToolsCount = Object.values(integrations).filter(Boolean).length;
+    const importedSourcesCount = sources.filter(s => s.connected).length;
 
     const [messages, setMessages] = useState<Message[]>([
         {
             id: "1",
             role: "assistant",
-            content: connectedToolsCount > 0
-                ? `Hello! I&apos;m connected to ${connectedToolsCount} of your tools. How can I help you today?`
-                : "Hello! Connect your tools in the Knowledge Sources tab to get started. How can I help you today?",
+            content: importedSourcesCount > 0
+                ? `Hello! I&apos;m connected to ${connectedToolsCount} tools and index is ready for ${importedSourcesCount} sources. How can I help you today?`
+                : connectedToolsCount > 0
+                    ? "Hello! I see you&apos;ve connected tools, but no repositories or projects have been imported yet. Please go to Knowledge Sources to import your data."
+                    : "Hello! Connect your tools in the Knowledge Sources tab to get started. How can I help you today?",
             timestamp: new Date(),
         },
     ]);
@@ -76,7 +79,13 @@ export default function AssistantChat() {
                         DevKnowledge AI
                         <Sparkles className="h-3 w-3 text-yellow-500" />
                     </h3>
-                    <p className="text-xs text-zinc-400">Connected to {connectedToolsCount} {connectedToolsCount === 1 ? 'tool' : 'tools'}</p>
+                    <p className="text-xs text-zinc-400">
+                        {importedSourcesCount > 0
+                            ? `${importedSourcesCount} sources indexed`
+                            : connectedToolsCount > 0
+                                ? "Waiting for import..."
+                                : "No tools connected"}
+                    </p>
                 </div>
             </div>
 

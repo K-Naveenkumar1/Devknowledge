@@ -59,6 +59,7 @@ export default function Sidebar() {
                     </p>
                     {navItems.map((item) => {
                         const isActive = pathname === item.href;
+                        const Icon = item.icon;
                         return (
                             <Link
                                 key={item.name}
@@ -75,7 +76,7 @@ export default function Sidebar() {
                                         transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                                     />
                                 )}
-                                <item.icon className={`relative z-10 mr-3 h-5 w-5 transition-colors ${isActive ? "text-blue-500" : "text-zinc-500 group-hover:text-blue-400"
+                                <Icon className={`relative z-10 mr-3 h-5 w-5 transition-colors ${isActive ? "text-blue-500" : "text-zinc-500 group-hover:text-blue-400"
                                     }`} />
                                 <span className="relative z-10">{item.name}</span>
                                 {isActive && (
@@ -95,6 +96,7 @@ export default function Sidebar() {
                         const isActive = pathname === item.href;
                         const toolId = item.name.toLowerCase() as keyof typeof integrations;
                         const isConnected = integrations[toolId];
+                        const Icon = item.icon;
 
                         return (
                             <Link
@@ -105,7 +107,7 @@ export default function Sidebar() {
                                     : "text-zinc-400 hover:bg-zinc-900/50 hover:text-white"
                                     }`}
                             >
-                                <item.icon className={`mr-3 h-5 w-5 transition-colors ${isActive ? "text-blue-500" : "text-zinc-500 group-hover:text-zinc-300"
+                                <Icon className={`mr-3 h-5 w-5 transition-colors ${isActive ? "text-blue-500" : "text-zinc-500 group-hover:text-zinc-300"
                                     }`} />
                                 <span className="flex-1">{item.name}</span>
                                 {isConnected && (
@@ -139,7 +141,7 @@ export default function Sidebar() {
                                 <p className="truncate text-[10px] text-zinc-500">{user?.role || "Developer"}</p>
                             </div>
                         </div>
-                        <button 
+                        <button
                             onClick={logout}
                             className="p-1.5 text-zinc-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all"
                             title="Log Out"

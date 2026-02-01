@@ -6,16 +6,17 @@ import { supabase } from "@/lib/supabase";
 
 type AuthContextType = {
     isAuthenticated: boolean;
-    user: { name: string; role: string } | null;
-    login: () => void;
-    logout: () => void;
+    user: { id: string; name: string; email: string; role: string } | null;
+    signIn: (email: string, password: string) => Promise<{ error: any }>;
+    signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
+    logout: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [user, setUser] = useState<{ name: string; role: string } | null>(null);
+    const [user, setUser] = useState<{ id: string; name: string; email: string; role: string } | null>(null);
 
     // Initialize from Supabase and localStorage
     useEffect(() => {
@@ -24,15 +25,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (session?.user) {
                 setIsAuthenticated(true);
                 setUser({
+                    id: session.user.id,
+                    email: session.user.email || "",
                     name: session.user.user_metadata.full_name || session.user.email?.split("@")[0] || "User",
                     role: "Developer"
                 });
-            } else {
-                const loggedIn = localStorage.getItem("isLoggedIn") === "true";
-                if (loggedIn) {
-                    setIsAuthenticated(true);
-                    setUser({ name: "John Doe", role: "Frontend Developer" });
-                }
             }
         };
 
@@ -42,6 +39,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (session?.user) {
                 setIsAuthenticated(true);
                 setUser({
+                    id: session.user.id,
+                    email: session.user.email || "",
                     name: session.user.user_metadata.full_name || session.user.email?.split("@")[0] || "User",
                     role: "Developer"
                 });
@@ -54,24 +53,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return () => subscription.unsubscribe();
     }, []);
 
-    const login = async () => {
-        // In a real app, this would be a real Supabase sign in
-        // For now we simulate and fallback
-        setIsAuthenticated(true);
-        setUser({ name: "John Doe", role: "Frontend Developer" });
-        localStorage.setItem("isLoggedIn", "true");
+    const signIn = async (email: string, password: string) => {
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+        });
+        return { error };
+    };
+
+    const signUp = async (email: string, password: string, fullName: string) => {
+        const { data, error } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+                data: {
+                    full_name: fullName,
+                },
+            },
+        });
+        return { error };
     };
 
     const logout = async () => {
         await supabase.auth.signOut();
         setIsAuthenticated(false);
         setUser(null);
-        localStorage.removeItem("isLoggedIn");
         window.location.href = "/";
     };
 
     return (
-        <AuthContext.Provider value={{ isAuthenticated, user, login, logout }}>
+        <AuthContext.Provider value={{ isAuthenticated, user, signIn, signUp, logout }}>
             {children}
         </AuthContext.Provider>
     );

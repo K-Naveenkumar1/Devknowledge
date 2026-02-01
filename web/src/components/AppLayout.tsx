@@ -38,7 +38,7 @@ export default function AppLayout({
     }
 
     if (isDashboard && !isAuthenticated) {
-        return null; // Don't flash dashboard while redirecting
+        return null; // Don&apos;t flash dashboard while redirecting
     }
 
     return (

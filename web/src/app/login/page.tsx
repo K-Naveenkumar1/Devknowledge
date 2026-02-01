@@ -10,18 +10,25 @@ import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
     const [loading, setLoading] = useState(false);
-    const { login } = useAuth();
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState<string | null>(null);
+    const { signIn } = useAuth();
     const router = useRouter();
 
-    const handleLogin = (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-        // Simulate login
-        setTimeout(() => {
+        setError(null);
+
+        const { error: signInError } = await signIn(email, password);
+
+        if (signInError) {
+            setError(signInError.message);
             setLoading(false);
-            login();
+        } else {
             router.push("/dashboard");
-        }, 1500);
+        }
     };
 
     return (
@@ -57,12 +64,20 @@ export default function LoginPage() {
                         </div>
                     </div>
 
+                    {error && (
+                        <div className="mb-6 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+                            {error}
+                        </div>
+                    )}
+
                     <form onSubmit={handleLogin} className="space-y-4">
                         <div>
                             <label className="block text-sm font-medium text-zinc-400 mb-1.5">Email Address</label>
                             <input
                                 type="email"
                                 required
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                                 className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2.5 text-zinc-100 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none"
                                 placeholder="you@company.com"
                             />
@@ -72,6 +87,8 @@ export default function LoginPage() {
                             <input
                                 type="password"
                                 required
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
                                 className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2.5 text-zinc-100 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none"
                                 placeholder="••••••••"
                             />
@@ -88,7 +105,7 @@ export default function LoginPage() {
                     </form>
 
                     <p className="mt-6 text-center text-sm text-zinc-500">
-                        Don't have an account?{" "}
+                        Don&apos;t have an account?{" "}
                         <Link href="/signup" className="text-blue-400 hover:text-blue-300 transition-colors font-medium">
                             Sign up
                         </Link>

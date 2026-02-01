@@ -94,14 +94,17 @@ export default function LandingPage() {
               { name: "Jira", icon: Layers, color: "text-blue-500" },
               { name: "Confluence", icon: Layout, color: "text-blue-400" },
               { name: "Slack", icon: MessageSquare, color: "text-pink-500" }
-            ].map((tool) => (
-              <div key={tool.name} className="flex flex-col items-center gap-4 group cursor-default">
-                <div className="h-16 w-16 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center group-hover:border-blue-500/50 transition-all">
-                  <tool.icon className={`h-8 w-8 ${tool.color}`} />
+            ].map((tool) => {
+              const Icon = tool.icon;
+              return (
+                <div key={tool.name} className="flex flex-col items-center gap-4 group cursor-default">
+                  <div className="h-16 w-16 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center group-hover:border-blue-500/50 transition-all">
+                    <Icon className={`h-8 w-8 ${tool.color}`} />
+                  </div>
+                  <span className="text-zinc-400 group-hover:text-white font-medium transition-colors">{tool.name}</span>
                 </div>
-                <span className="text-zinc-400 group-hover:text-white font-medium transition-colors">{tool.name}</span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>

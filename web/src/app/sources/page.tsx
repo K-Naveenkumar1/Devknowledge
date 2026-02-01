@@ -7,8 +7,9 @@ import IntegrationGrid from "@/components/IntegrationGrid";
 
 
 export default function SourcesPage() {
-    const { integrations } = useIntegrations();
-    const hasConnectedSources = Object.values(integrations).some(status => status === true);
+    const { integrations, sources, toggleSource } = useIntegrations();
+    const hasConnectedIntegrations = Object.values(integrations).some(status => status === true);
+    const connectedSources = sources.filter(s => s.connected);
 
     return (
         <div className="p-8 max-w-6xl mx-auto">
@@ -46,23 +47,65 @@ export default function SourcesPage() {
                 </div>
 
                 <div className="divide-y divide-zinc-800">
-                    {!hasConnectedSources ? (
+                    {!hasConnectedIntegrations ? (
                         <div className="p-12 flex flex-col items-center justify-center text-center">
                             <div className="h-16 w-16 bg-zinc-800/50 rounded-2xl flex items-center justify-center mb-4 border border-zinc-700">
                                 <Database className="h-8 w-8 text-zinc-600" />
                             </div>
-                            <h3 className="text-white font-semibold">No sources connected</h3>
+                            <h3 className="text-white font-semibold">No integrations connected</h3>
                             <p className="text-zinc-500 max-w-sm mt-1 mb-6">
-                                Connect integrations to see your repositories, documentation spaces, and channels here.
+                                Connect your first integration to start importing repositories and documents.
                             </p>
                             <IntegrationGrid />
                         </div>
-                    ) : (
-                        <div className="p-12 text-center text-zinc-500">
-                            {/* This would list connected repositories/channels in a real app */}
-                            <p>Displaying sources for connected integrations...</p>
-                            <div className="mt-8">
+                    ) : connectedSources.length === 0 ? (
+                        <div className="p-12 flex flex-col items-center justify-center text-center">
+                            <h3 className="text-white font-semibold">No sources imported yet</h3>
+                            <p className="text-zinc-500 max-w-sm mt-1 mb-6">
+                                Go to the individual integration pages to select which projects/repos to import.
+                            </p>
+                            <div className="mt-4">
                                 <IntegrationGrid />
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="bg-zinc-950/20">
+                            {connectedSources.map((source) => (
+                                <div key={source.id} className="p-4 flex items-center justify-between hover:bg-zinc-800/30 transition-colors">
+                                    <div className="flex items-center gap-4">
+                                        <div className="h-10 w-10 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400">
+                                            <Database className="h-5 w-5" />
+                                        </div>
+                                        <div>
+                                            <div className="flex items-center gap-2">
+                                                <h4 className="text-white font-medium">{source.name}</h4>
+                                                <span className="px-2 py-0.5 rounded text-[10px] bg-zinc-800 text-zinc-400 border border-zinc-700 uppercase font-bold tracking-tight">
+                                                    {source.type}
+                                                </span>
+                                            </div>
+                                            <p className="text-zinc-500 text-xs mt-0.5">Last synced: Just now • Context mapped: 100%</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-6">
+                                        <div className="hidden md:flex flex-col items-end">
+                                            <span className="text-emerald-500 text-xs font-semibold">Active</span>
+                                            <span className="text-zinc-500 text-[10px]">Indexed & Ready</span>
+                                        </div>
+                                        <button
+                                            onClick={() => toggleSource(source.id)}
+                                            className="p-2 text-zinc-500 hover:text-red-400 transition-colors"
+                                            title="Remove Source"
+                                        >
+                                            <RefreshCw className="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                            <div className="p-8 text-center border-t border-zinc-800">
+                                <p className="text-zinc-500 text-sm mb-4">Want to add more? Manage your integrations below.</p>
+                                <div className="flex justify-center">
+                                    <IntegrationGrid />
+                                </div>
                             </div>
                         </div>
                     )}

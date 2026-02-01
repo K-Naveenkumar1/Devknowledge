@@ -6,8 +6,9 @@ import { useIntegrations } from "@/context/IntegrationContext";
 
 
 export default function SlackPage() {
-    const { integrations, connectTool, disconnectTool } = useIntegrations();
+    const { integrations, sources, connectTool, disconnectTool, toggleSource } = useIntegrations();
     const isConnected = integrations.slack;
+    const slackSources = sources.filter(s => s.type === "slack");
 
     const toggleConnection = () => {
         if (isConnected) {
@@ -32,8 +33,8 @@ export default function SlackPage() {
                 <button
                     onClick={toggleConnection}
                     className={`flex items-center gap-2 px-6 py-2.5 rounded-lg font-medium transition-all ${isConnected
-                            ? "bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700"
-                            : "bg-[#4A154B] hover:bg-[#611f69] text-white"
+                        ? "bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700"
+                        : "bg-[#4A154B] hover:bg-[#611f69] text-white"
                         }`}
                 >
                     {isConnected ? <CheckCircle2 className="h-5 w-5" /> : <Slack className="h-5 w-5" />}
@@ -43,30 +44,52 @@ export default function SlackPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="md:col-span-2 space-y-6">
-                    <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-8 opacity-10">
-                            <Slack className="h-32 w-32" />
+                    <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl overflow-hidden">
+                        <div className="p-6 border-b border-zinc-800">
+                            <h3 className="text-white font-semibold">
+                                {isConnected ? "Select channels to sync" : "Connect Slack workspace"}
+                            </h3>
+                            <p className="text-zinc-500 text-sm mt-1">
+                                {isConnected
+                                    ? "Select which channels the AI should monitor for technical context."
+                                    : "Link your workspace to browse channels."}
+                            </p>
                         </div>
-                        <h2 className="text-xl font-semibold text-white mb-4">Channel Synchronization</h2>
-                        <p className="text-zinc-400 mb-6 max-w-lg">
-                            Select specific channels for DevKnowledge to monitor. The AI will extract technical decisions, issue reports, and deployment logs to provide real-time updates.
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                            {['#engineering', '#deployments', '#prod-issues', '#tech-design'].map(channel => (
-                                <div key={channel} className={`px-3 py-1 rounded-full border transition-colors flex items-center gap-2 text-sm ${isConnected ? "bg-pink-500/10 border-pink-500/20 text-pink-500" : "bg-zinc-950 border-zinc-800 text-zinc-500"
-                                    }`}>
-                                    <Hash className="h-3 w-3" />
-                                    {channel.substring(1)}
-                                    {isConnected && <CheckCircle2 className="h-3 w-3 ml-1" />}
+
+                        <div className="divide-y divide-zinc-800">
+                            {isConnected ? (
+                                slackSources.map(channel => (
+                                    <div key={channel.id} className="p-4 flex items-center justify-between hover:bg-zinc-800/30 transition-colors">
+                                        <div className="flex items-center gap-3">
+                                            <div className="h-10 w-10 rounded-lg bg-zinc-800 flex items-center justify-center border border-zinc-700">
+                                                <Hash className="h-5 w-5 text-pink-500" />
+                                            </div>
+                                            <div>
+                                                <p className="text-zinc-100 font-medium">{channel.name}</p>
+                                                <p className="text-zinc-500 text-xs">Public Channel</p>
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={() => toggleSource(channel.id)}
+                                            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${channel.connected
+                                                    ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
+                                                    : "bg-[#4A154B] text-white hover:bg-[#611f69]"
+                                                }`}
+                                        >
+                                            {channel.connected ? "Syncing" : "Sync"}
+                                        </button>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="p-12 flex flex-col items-center justify-center text-center">
+                                    <div className="h-16 w-16 bg-zinc-800/50 rounded-2xl flex items-center justify-center mb-4 border border-zinc-700">
+                                        <ShieldCheck className="h-8 w-8 text-zinc-600" />
+                                    </div>
+                                    <h4 className="text-zinc-400 font-medium">Workspace Not Linked</h4>
+                                    <p className="text-zinc-500 text-sm mt-1 mb-6">Connect your workspace to select channels.</p>
                                 </div>
-                            ))}
+                            )}
                         </div>
-                        {isConnected && (
-                            <div className="mt-8 p-4 bg-emerald-500/5 border border-emerald-500/10 rounded-xl flex items-center gap-3">
-                                <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                                <p className="text-emerald-500 text-sm font-medium">Real-time synchronization active for selected channels.</p>
-                            </div>
-                        )}
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

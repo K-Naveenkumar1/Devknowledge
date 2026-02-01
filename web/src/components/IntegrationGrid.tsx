@@ -35,6 +35,8 @@ export default function IntegrationGrid() {
             {tools.map((tool, index) => {
                 const isConnected = integrations[tool.id as keyof typeof integrations];
 
+                const Icon = tool.icon;
+
                 return (
                     <motion.div
                         key={tool.id}
@@ -50,7 +52,7 @@ export default function IntegrationGrid() {
                         <div className="flex items-start justify-between mb-4 relative z-10">
                             <div className={`p-2 rounded-lg border transition-colors ${isConnected ? "bg-emerald-500/20 border-emerald-500/30 text-emerald-500" : "bg-zinc-950 border-zinc-800 group-hover:border-zinc-700 text-zinc-400"
                                 }`}>
-                                <tool.icon className={`h-5 w-5 ${isConnected ? "text-emerald-400" : "text-zinc-400 group-hover:text-zinc-100"}`} />
+                                <Icon className={`h-5 w-5 ${isConnected ? "text-emerald-400" : "text-zinc-400 group-hover:text-zinc-100"}`} />
                             </div>
                             {isConnected ? (
                                 <CheckCircle2 className="h-4 w-4 text-emerald-500" />
