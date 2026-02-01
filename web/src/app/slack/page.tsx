@@ -6,15 +6,31 @@ import { useIntegrations } from "@/context/IntegrationContext";
 
 
 export default function SlackPage() {
-    const { integrations, sources, connectTool, disconnectTool, toggleSource } = useIntegrations();
+    const { integrations, sources, isSyncing, connectTool, disconnectTool, toggleSource, addCustomSource, importAllSources } = useIntegrations();
     const isConnected = integrations.slack;
+    const isToolSyncing = isSyncing.slack;
     const slackSources = sources.filter(s => s.type === "slack");
+    const [identity, setIdentity] = React.useState("");
+    const [newChannel, setNewChannel] = React.useState("");
 
     const toggleConnection = () => {
         if (isConnected) {
             disconnectTool("slack");
+            setIdentity("");
         } else {
-            connectTool("slack");
+            if (!identity.trim()) {
+                alert("Please enter your Slack Workspace domain.");
+                return;
+            }
+            connectTool("slack", identity);
+        }
+    };
+
+    const handleAddChannel = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (newChannel.trim()) {
+            addCustomSource("slack", `#${newChannel.trim().replace(/^#/, "")}`);
+            setNewChannel("");
         }
     };
 
@@ -58,35 +74,85 @@ export default function SlackPage() {
 
                         <div className="divide-y divide-zinc-800">
                             {isConnected ? (
-                                slackSources.map(channel => (
-                                    <div key={channel.id} className="p-4 flex items-center justify-between hover:bg-zinc-800/30 transition-colors">
-                                        <div className="flex items-center gap-3">
-                                            <div className="h-10 w-10 rounded-lg bg-zinc-800 flex items-center justify-center border border-zinc-700">
-                                                <Hash className="h-5 w-5 text-pink-500" />
+                                <>
+                                    <div className="p-4 bg-zinc-800/20">
+                                        <form onSubmit={handleAddChannel} className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                value={newChannel}
+                                                onChange={(e) => setNewChannel(e.target.value)}
+                                                placeholder="Enter channel name (e.g. engineering)"
+                                                className="flex-1 bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-100 outline-none focus:ring-1 focus:ring-blue-500"
+                                            />
+                                            <button
+                                                type="submit"
+                                                className="px-4 py-2 bg-[#4A154B] text-white text-sm font-medium rounded-lg hover:bg-[#611f69] transition-colors"
+                                            >
+                                                Add Channel
+                                            </button>
+                                        </form>
+                                    </div>
+                                    {slackSources.map(channel => (
+                                        <div key={channel.id} className="p-4 flex items-center justify-between hover:bg-zinc-800/30 transition-colors">
+                                            <div className="flex items-center gap-3">
+                                                <div className="h-10 w-10 rounded-lg bg-zinc-800 flex items-center justify-center border border-zinc-700">
+                                                    <Hash className="h-5 w-5 text-pink-500" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-zinc-100 font-medium">{channel.name}</p>
+                                                    <p className="text-zinc-500 text-xs">Slack Channel</p>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <p className="text-zinc-100 font-medium">{channel.name}</p>
-                                                <p className="text-zinc-500 text-xs">Public Channel</p>
-                                            </div>
-                                        </div>
-                                        <button
-                                            onClick={() => toggleSource(channel.id)}
-                                            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${channel.connected
+                                            <button
+                                                onClick={() => toggleSource(channel.id)}
+                                                className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${channel.connected
                                                     ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
                                                     : "bg-[#4A154B] text-white hover:bg-[#611f69]"
-                                                }`}
-                                        >
-                                            {channel.connected ? "Syncing" : "Sync"}
-                                        </button>
-                                    </div>
-                                ))
+                                                    }`}
+                                            >
+                                                {channel.connected ? "Syncing" : "Sync"}
+                                            </button>
+                                        </div>
+                                    ))}
+                                </>
                             ) : (
                                 <div className="p-12 flex flex-col items-center justify-center text-center">
-                                    <div className="h-16 w-16 bg-zinc-800/50 rounded-2xl flex items-center justify-center mb-4 border border-zinc-700">
-                                        <ShieldCheck className="h-8 w-8 text-zinc-600" />
+                                    <div className="h-16 w-16 bg-zinc-800/50 rounded-2xl flex items-center justify-center mb-6 border border-zinc-700">
+                                        <Slack className={`h-8 w-8 ${isToolSyncing ? "text-pink-500 animate-pulse" : "text-zinc-600"}`} />
                                     </div>
-                                    <h4 className="text-zinc-400 font-medium">Workspace Not Linked</h4>
-                                    <p className="text-zinc-500 text-sm mt-1 mb-6">Connect your workspace to select channels.</p>
+                                    <h4 className="text-zinc-400 font-medium mb-2">{isToolSyncing ? `Scanning ${identity}.slack.com...` : "Find Your Channels"}</h4>
+                                    <p className="text-zinc-500 text-sm mb-8 max-w-xs">{isToolSyncing ? "We are fetching your team conversations." : "Enter your Slack workspace domain to discover and link your channels."}</p>
+
+                                    {!isToolSyncing && (
+                                        <div className="w-full max-w-xs mb-6 flex items-center bg-zinc-950 border border-zinc-800 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-pink-500/50">
+                                            <input
+                                                type="text"
+                                                value={identity}
+                                                onChange={(e) => setIdentity(e.target.value)}
+                                                placeholder="workspace"
+                                                className="flex-1 bg-transparent px-4 py-3 text-zinc-100 outline-none text-right"
+                                            />
+                                            <span className="bg-zinc-900 px-4 py-3 text-zinc-500 border-l border-zinc-800 text-sm">.slack.com</span>
+                                        </div>
+                                    )}
+
+                                    <button
+                                        onClick={toggleConnection}
+                                        disabled={isToolSyncing}
+                                        className="bg-[#4A154B] hover:bg-[#611f69] text-white px-8 py-3 rounded-xl font-bold transition-all flex items-center gap-3 shadow-xl disabled:opacity-50"
+                                    >
+                                        {isToolSyncing ? (
+                                            <>
+                                                <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                                Scanning...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Slack className="h-5 w-5" />
+                                                Connect Workspace
+                                            </>
+                                        )}
+                                    </button>
                                 </div>
                             )}
                         </div>

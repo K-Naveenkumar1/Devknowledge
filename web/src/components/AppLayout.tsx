@@ -13,25 +13,29 @@ export default function AppLayout({
     children: React.ReactNode;
 }) {
     const pathname = usePathname();
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, isLoading } = useAuth();
     const router = useRouter();
 
     const isAuthPage = pathname === "/login" || pathname === "/signup";
     const isLandingPage = pathname === "/";
-    const isDashboard = pathname.startsWith("/dashboard") || 
-                       pathname === "/sources" || 
-                       pathname === "/ai-chat" || 
-                       pathname === "/github" || 
-                       pathname === "/jira" || 
-                       pathname === "/confluence" || 
-                       pathname === "/slack" || 
-                       pathname === "/settings";
+    const isDashboard = pathname.startsWith("/dashboard") ||
+        pathname === "/sources" ||
+        pathname === "/ai-chat" ||
+        pathname === "/github" ||
+        pathname === "/jira" ||
+        pathname === "/confluence" ||
+        pathname === "/slack" ||
+        pathname === "/settings";
 
     useEffect(() => {
-        if (isDashboard && !isAuthenticated) {
-            router.push("/");
+        if (!isLoading) {
+            if (isDashboard && !isAuthenticated) {
+                router.push("/");
+            } else if (isAuthPage && isAuthenticated) {
+                router.push("/dashboard");
+            }
         }
-    }, [isDashboard, isAuthenticated, router]);
+    }, [isDashboard, isAuthPage, isAuthenticated, isLoading, router]);
 
     if (isAuthPage || isLandingPage) {
         return <>{children}</>;

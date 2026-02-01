@@ -30,6 +30,7 @@ export default function AssistantChat() {
         },
     ]);
     const [input, setInput] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const scrollToBottom = () => {
@@ -41,30 +42,51 @@ export default function AssistantChat() {
     }, [messages]);
 
     const handleSend = () => {
-        if (!input.trim()) return;
+        if (!input.trim() || isLoading) return;
 
+        const userMessage = input.trim();
         const newMessage: Message = {
             id: Date.now().toString(),
             role: "user",
-            content: input,
+            content: userMessage,
             timestamp: new Date(),
         };
 
         setMessages((prev) => [...prev, newMessage]);
         setInput("");
+        setIsLoading(true);
 
-        // Simulate AI response
+        // Simulate AI "Processing" logic
         setTimeout(() => {
+            let response = "I&apos;m not sure about that. Try connecting more sources to help me understand your project.";
+
+            if (importedSourcesCount > 0) {
+                const sourceNames = sources.filter(s => s.connected).map(s => s.name).join(", ");
+
+                if (userMessage.toLowerCase().includes("code") || userMessage.toLowerCase().includes("explain")) {
+                    response = `I converted the context from **${sourceNames}** into a technical map. Based on the indexed files, the architecture follows a modular pattern. I see logic for entity management and API integration that I can explain in detail if you specify a module.`;
+                } else if (userMessage.toLowerCase().includes("issue") || userMessage.toLowerCase().includes("bug")) {
+                    response = `I scanned the known issues across **${sourceNames}**. There are currently 2 open high-priority bugs related to authentication and data persistence. Would you like me to summarize the root cause analysis from the recent PR discussions?`;
+                } else if (userMessage.toLowerCase().includes("who")) {
+                    response = `Based on the repository metadata from **${sourceNames}**, the primary contributors to this module are the engineering core team. Most recent changes were committed by lead developers in the last 48 hours focusing on performance optimization.`;
+                } else {
+                    response = `I&apos;ve successfully indexed **${importedSourcesCount} sources** (${sourceNames}). I&apos;m ready to answer deep technical questions, summarize documentation, or trace root causes across these repositories and projects. What&apos;s on your mind?`;
+                }
+            } else if (connectedToolsCount > 0) {
+                response = "I see your tools are connected, but I haven&apos;t indexed any specific repositories or projects yet. Please go to the **Knowledge Sources** page and click **Import** or **Sync** on the items you want me to analyze.";
+            }
+
             setMessages((prev) => [
                 ...prev,
                 {
                     id: (Date.now() + 1).toString(),
                     role: "assistant",
-                    content: "I&apos;m processing that request directly with your integrated tools. Give me a moment...",
+                    content: response,
                     timestamp: new Date(),
                 },
             ]);
-        }, 1000);
+            setIsLoading(false);
+        }, 1500);
     };
 
     return (
@@ -116,6 +138,18 @@ export default function AssistantChat() {
                         </div>
                     </div>
                 ))}
+                {isLoading && (
+                    <div className="flex items-start gap-3">
+                        <div className="h-8 w-8 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center">
+                            <Bot className="h-4 w-4 text-zinc-400 animate-pulse" />
+                        </div>
+                        <div className="bg-zinc-800/50 text-zinc-400 border border-zinc-700/50 rounded-2xl px-4 py-2.5 text-sm flex gap-1">
+                            <span className="animate-bounce delay-0">.</span>
+                            <span className="animate-bounce delay-100">.</span>
+                            <span className="animate-bounce delay-200">.</span>
+                        </div>
+                    </div>
+                )}
                 <div ref={messagesEndRef} />
             </div>
 

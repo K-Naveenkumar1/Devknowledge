@@ -3,31 +3,21 @@
 import { motion } from "framer-motion";
 import { Github, MessageSquare, FileText, Database, CheckCircle2, Circle, Plus, AlertCircle, Loader2 } from "lucide-react";
 import { useIntegrations } from "@/context/IntegrationContext";
-import { useState } from "react";
-
+import { useRouter } from "next/navigation";
 
 const tools = [
-    { id: "github", name: "GitHub", icon: Github, description: "Repo & PR Context" },
-    { id: "jira", name: "Jira", icon: Database, description: "Issue Tracking" },
-    { id: "confluence", name: "Confluence", icon: FileText, description: "Knowledge Base" },
-    { id: "slack", name: "Slack", icon: MessageSquare, description: "Team Chat" },
+    { id: "github", name: "GitHub", icon: Github, description: "Repo & PR Context", path: "/github" },
+    { id: "jira", name: "Jira", icon: Database, description: "Issue Tracking", path: "/jira" },
+    { id: "confluence", name: "Confluence", icon: FileText, description: "Knowledge Base", path: "/confluence" },
+    { id: "slack", name: "Slack", icon: MessageSquare, description: "Team Chat", path: "/slack" },
 ] as const;
 
 export default function IntegrationGrid() {
-    const { integrations, connectTool, disconnectTool } = useIntegrations();
-    const [connecting, setConnecting] = useState<string | null>(null);
+    const { integrations } = useIntegrations();
+    const router = useRouter();
 
-    const toggleTool = (id: keyof typeof integrations) => {
-        if (integrations[id]) {
-            disconnectTool(id);
-        } else {
-            setConnecting(id);
-            // Simulate authenticating with the tool's OAuth
-            setTimeout(() => {
-                connectTool(id);
-                setConnecting(null);
-            }, 2000);
-        }
+    const handleToolClick = (path: string) => {
+        router.push(path);
     };
 
     return (
@@ -43,7 +33,7 @@ export default function IntegrationGrid() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.1 }}
-                        onClick={() => toggleTool(tool.id as keyof typeof integrations)}
+                        onClick={() => handleToolClick(tool.path)}
                         className={`p-4 rounded-xl border transition-all cursor-pointer group relative overflow-hidden ${isConnected
                             ? "border-emerald-500/30 bg-emerald-500/5 hover:bg-emerald-500/10"
                             : "border-zinc-800 bg-zinc-900/30 hover:bg-zinc-800/50 hover:border-zinc-700"
@@ -56,8 +46,6 @@ export default function IntegrationGrid() {
                             </div>
                             {isConnected ? (
                                 <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                            ) : connecting === tool.id ? (
-                                <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />
                             ) : (
                                 <Plus className="h-4 w-4 text-zinc-600 group-hover:text-zinc-400" />
                             )}
@@ -65,7 +53,7 @@ export default function IntegrationGrid() {
                         <div className="relative z-10">
                             <h3 className={`font-medium ${isConnected ? "text-emerald-100" : "text-zinc-200"}`}>{tool.name}</h3>
                             <p className={`text-sm ${isConnected ? "text-emerald-500/70" : "text-zinc-500"}`}>
-                                {isConnected ? "Connected" : connecting === tool.id ? "Authenticating..." : tool.description}
+                                {isConnected ? "Connected" : tool.description}
                             </p>
                         </div>
 

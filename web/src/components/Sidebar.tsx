@@ -24,7 +24,9 @@ import { useAuth } from "@/context/AuthContext";
 
 const navItems = [
     { name: "Overview", icon: Home, href: "/dashboard" },
+    { name: "Workspace", icon: Layers, href: "/workspace" },
     { name: "AI Assistant", icon: MessageSquare, href: "/ai-chat" },
+    { name: "Community Chat", icon: MessageSquare, href: "/chat" },
     { name: "Knowledge Sources", icon: Database, href: "/sources" },
 ];
 

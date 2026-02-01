@@ -20,6 +20,8 @@ export const metadata: Metadata = {
 import AppLayout from "@/components/AppLayout";
 import { IntegrationProvider } from "@/context/IntegrationContext";
 import { AuthProvider } from "@/context/AuthContext";
+import { WorkspaceProvider } from "@/context/WorkspaceContext";
+import { ChatProvider } from "@/context/ChatContext";
 
 
 export default function RootLayout({
@@ -32,9 +34,13 @@ export default function RootLayout({
       <body className="antialiased">
         <AuthProvider>
           <IntegrationProvider>
-            <AppLayout>
-              {children}
-            </AppLayout>
+            <WorkspaceProvider>
+              <ChatProvider>
+                <AppLayout>
+                  {children}
+                </AppLayout>
+              </ChatProvider>
+            </WorkspaceProvider>
           </IntegrationProvider>
         </AuthProvider>
       </body>

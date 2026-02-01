@@ -13,8 +13,18 @@ export default function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState<string | null>(null);
-    const { signIn } = useAuth();
+    const { signIn, signInWithGithub } = useAuth();
     const router = useRouter();
+
+    const handleGithubLogin = async () => {
+        setLoading(true);
+        setError(null);
+        const { error: githubError } = await signInWithGithub();
+        if (githubError) {
+            setError(githubError.message);
+            setLoading(false);
+        }
+    };
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -24,7 +34,11 @@ export default function LoginPage() {
         const { error: signInError } = await signIn(email, password);
 
         if (signInError) {
-            setError(signInError.message);
+            if (signInError.message.toLowerCase().includes("email not confirmed")) {
+                setError("Email not confirmed. Please check your inbox or disable 'Confirm email' in Supabase Dashbord > Authentication > Providers > Email for faster development.");
+            } else {
+                setError(signInError.message);
+            }
             setLoading(false);
         } else {
             router.push("/dashboard");
@@ -50,9 +64,13 @@ export default function LoginPage() {
                         <p className="text-zinc-400">Sign in to access your unified knowledge.</p>
                     </div>
 
-                    <button className="w-full bg-white text-black font-medium py-2.5 rounded-lg flex items-center justify-center gap-2 mb-6 hover:bg-zinc-200 transition-colors">
+                    <button
+                        onClick={handleGithubLogin}
+                        disabled={loading}
+                        className="w-full bg-white text-black font-medium py-2.5 rounded-lg flex items-center justify-center gap-2 mb-6 hover:bg-zinc-200 transition-colors disabled:opacity-50"
+                    >
                         <Github className="h-5 w-5" />
-                        Continue with GitHub
+                        {loading ? "Connecting..." : "Continue with GitHub"}
                     </button>
 
                     <div className="relative mb-6">

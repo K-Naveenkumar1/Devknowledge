@@ -1,20 +1,36 @@
 "use client";
 
 import React from "react";
-import { Database, Layout, ExternalLink, ShieldCheck, CheckSquare, CheckCircle2 } from "lucide-react";
+import { Database, Layout, ExternalLink, ShieldCheck, CheckSquare, CheckCircle2, Layers } from "lucide-react";
 import { useIntegrations } from "@/context/IntegrationContext";
 
 
 export default function JiraPage() {
-    const { integrations, sources, connectTool, disconnectTool, toggleSource } = useIntegrations();
+    const { integrations, sources, isSyncing, connectTool, disconnectTool, toggleSource, addCustomSource, importAllSources } = useIntegrations();
     const isConnected = integrations.jira;
+    const isToolSyncing = isSyncing.jira;
     const jiraSources = sources.filter(s => s.type === "jira");
+    const [identity, setIdentity] = React.useState("");
+    const [newProject, setNewProject] = React.useState("");
 
     const toggleConnection = () => {
         if (isConnected) {
             disconnectTool("jira");
+            setIdentity("");
         } else {
-            connectTool("jira");
+            if (!identity.trim()) {
+                alert("Please enter your Atlassian Site name.");
+                return;
+            }
+            connectTool("jira", identity);
+        }
+    };
+
+    const handleAddProject = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (newProject.trim()) {
+            addCustomSource("jira", newProject.trim());
+            setNewProject("");
         }
     };
 
@@ -77,40 +93,84 @@ export default function JiraPage() {
 
                         <div className="divide-y divide-zinc-800">
                             {isConnected ? (
-                                jiraSources.map(project => (
-                                    <div key={project.id} className="p-4 flex items-center justify-between hover:bg-zinc-800/30 transition-colors">
-                                        <div className="flex items-center gap-3">
-                                            <div className="h-10 w-10 rounded-lg bg-zinc-800 flex items-center justify-center border border-zinc-700">
-                                                <Database className="h-5 w-5 text-blue-500" />
+                                <>
+                                    <div className="p-4 bg-zinc-800/20">
+                                        <form onSubmit={handleAddProject} className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                value={newProject}
+                                                onChange={(e) => setNewProject(e.target.value)}
+                                                placeholder="Enter project name or key"
+                                                className="flex-1 bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-100 outline-none focus:ring-1 focus:ring-blue-500"
+                                            />
+                                            <button
+                                                type="submit"
+                                                className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-500 transition-colors"
+                                            >
+                                                Add Project
+                                            </button>
+                                        </form>
+                                    </div>
+                                    {jiraSources.map(project => (
+                                        <div key={project.id} className="p-4 flex items-center justify-between hover:bg-zinc-800/30 transition-colors">
+                                            <div className="flex items-center gap-3">
+                                                <div className="h-10 w-10 rounded-lg bg-zinc-800 flex items-center justify-center border border-zinc-700">
+                                                    <Database className="h-5 w-5 text-blue-500" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-zinc-100 font-medium">{project.name}</p>
+                                                    <p className="text-zinc-500 text-xs">Jira Project</p>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <p className="text-zinc-100 font-medium">{project.name}</p>
-                                                <p className="text-zinc-500 text-xs">Atlassian Cloud Project</p>
-                                            </div>
-                                        </div>
-                                        <button
-                                            onClick={() => toggleSource(project.id)}
-                                            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${project.connected
+                                            <button
+                                                onClick={() => toggleSource(project.id)}
+                                                className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${project.connected
                                                     ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
                                                     : "bg-blue-600 text-white hover:bg-blue-500"
-                                                }`}
-                                        >
-                                            {project.connected ? "Imported" : "Import"}
-                                        </button>
-                                    </div>
-                                ))
+                                                    }`}
+                                            >
+                                                {project.connected ? "Imported" : "Import"}
+                                            </button>
+                                        </div>
+                                    ))}
+                                </>
                             ) : (
                                 <div className="p-12 flex flex-col items-center justify-center text-center">
-                                    <div className="h-16 w-16 bg-zinc-800/50 rounded-2xl flex items-center justify-center mb-4 border border-zinc-700">
-                                        <Layout className="h-8 w-8 text-zinc-600" />
+                                    <div className="h-16 w-16 bg-zinc-800/50 rounded-2xl flex items-center justify-center mb-6 border border-zinc-700">
+                                        <Layers className={`h-8 w-8 ${isToolSyncing ? "text-blue-500 animate-pulse" : "text-zinc-600"}`} />
                                     </div>
-                                    <h4 className="text-zinc-400 font-medium">Authentication Required</h4>
-                                    <p className="text-zinc-500 text-sm mt-1 mb-6">Connect your instance to fetch projects.</p>
+                                    <h4 className="text-zinc-400 font-medium mb-2">{isToolSyncing ? `Scanning ${identity}.atlassian.net...` : "Find Your Projects"}</h4>
+                                    <p className="text-zinc-500 text-sm mb-8 max-w-xs">{isToolSyncing ? "We are fetching your boards and backlogs." : "Enter your Atlassian site name to discover and link your Jira projects."}</p>
+
+                                    {!isToolSyncing && (
+                                        <div className="w-full max-w-xs mb-6 flex items-center bg-zinc-950 border border-zinc-800 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/50">
+                                            <input
+                                                type="text"
+                                                value={identity}
+                                                onChange={(e) => setIdentity(e.target.value)}
+                                                placeholder="site-name"
+                                                className="flex-1 bg-transparent px-4 py-3 text-zinc-100 outline-none text-right"
+                                            />
+                                            <span className="bg-zinc-900 px-4 py-3 text-zinc-500 border-l border-zinc-800 text-sm">.atlassian.net</span>
+                                        </div>
+                                    )}
+
                                     <button
                                         onClick={toggleConnection}
-                                        className="text-blue-400 hover:text-blue-300 font-medium text-sm flex items-center gap-2"
+                                        disabled={isToolSyncing}
+                                        className="bg-[#0052CC] hover:bg-[#0747A6] text-white px-8 py-3 rounded-xl font-bold transition-all flex items-center gap-3 shadow-xl disabled:opacity-50"
                                     >
-                                        <Database className="h-4 w-4" /> Connect Atlassian
+                                        {isToolSyncing ? (
+                                            <>
+                                                <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                                Scanning Site...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Layers className="h-5 w-5" />
+                                                Connect Site
+                                            </>
+                                        )}
                                     </button>
                                 </div>
                             )}

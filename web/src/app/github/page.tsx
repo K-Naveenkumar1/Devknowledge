@@ -3,18 +3,38 @@
 import React from "react";
 import { Github, Folder, ExternalLink, ShieldCheck, CheckCircle2 } from "lucide-react";
 import { useIntegrations } from "@/context/IntegrationContext";
+import { useAuth } from "@/context/AuthContext";
 
 
 export default function GitHubPage() {
-    const { integrations, sources, connectTool, disconnectTool, toggleSource } = useIntegrations();
+    const { integrations, sources, isSyncing, connectTool, disconnectTool, toggleSource, addCustomSource, importAllSources } = useIntegrations();
     const isConnected = integrations.github;
+    const isToolSyncing = isSyncing.github;
     const githubSources = sources.filter(s => s.type === "github");
+    const [identity, setIdentity] = React.useState("");
+    const [newRepo, setNewRepo] = React.useState("");
 
-    const toggleConnection = () => {
+    const { signInWithGithub, user } = useAuth();
+    const githubUsername = (user as any)?.user_metadata?.user_name || identity;
+
+    const toggleConnection = async () => {
         if (isConnected) {
             disconnectTool("github");
+            setIdentity("");
         } else {
-            connectTool("github");
+            if (!identity.trim()) {
+                alert("Please enter a GitHub username or organization.");
+                return;
+            }
+            connectTool("github", identity);
+        }
+    };
+
+    const handleAddRepo = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (newRepo.trim()) {
+            addCustomSource("github", newRepo.trim());
+            setNewRepo("");
         }
     };
 
@@ -72,53 +92,106 @@ export default function GitHubPage() {
                     </div>
 
                     <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl overflow-hidden">
-                        <div className="p-6 border-b border-zinc-800">
-                            <h3 className="text-white font-semibold">
-                                {isConnected ? "Select repositories to import" : "Connect to see repositories"}
-                            </h3>
-                            <p className="text-zinc-500 text-sm mt-1">
-                                {isConnected
-                                    ? "These repositories were found in your account. Select which ones to map for AI reasoning."
-                                    : "Grant access to your GitHub account to import repositories."}
-                            </p>
+                        <div className="p-6 border-b border-zinc-800 flex items-center justify-between">
+                            <div>
+                                <h3 className="text-white font-semibold">
+                                    {isConnected ? "Select repositories to import" : "Connect to see repositories"}
+                                </h3>
+                                <p className="text-zinc-500 text-sm mt-1">
+                                    {isConnected
+                                        ? "These repositories were found in your account. Select which ones to map for AI reasoning."
+                                        : "Grant access to your GitHub account to import repositories."}
+                                </p>
+                            </div>
+                            {isConnected && githubSources.length > 0 && (
+                                <button
+                                    onClick={() => importAllSources("github")}
+                                    className="px-4 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 text-xs font-bold text-zinc-300 hover:text-white transition-all"
+                                >
+                                    Import All
+                                </button>
+                            )}
                         </div>
 
                         <div className="divide-y divide-zinc-800">
                             {isConnected ? (
-                                githubSources.map(repo => (
-                                    <div key={repo.id} className="p-4 flex items-center justify-between hover:bg-zinc-800/30 transition-colors">
-                                        <div className="flex items-center gap-3">
-                                            <div className="h-10 w-10 rounded-lg bg-zinc-800 flex items-center justify-center border border-zinc-700">
-                                                <Github className="h-5 w-5 text-zinc-400" />
+                                <>
+                                    <div className="p-4 bg-zinc-800/20">
+                                        <form onSubmit={handleAddRepo} className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                value={newRepo}
+                                                onChange={(e) => setNewRepo(e.target.value)}
+                                                placeholder="Enter repo name (e.g. org/repo)"
+                                                className="flex-1 bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-100 outline-none focus:ring-1 focus:ring-blue-500"
+                                            />
+                                            <button
+                                                type="submit"
+                                                className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-500 transition-colors"
+                                            >
+                                                Add Repo
+                                            </button>
+                                        </form>
+                                    </div>
+                                    {githubSources.map(repo => (
+                                        <div key={repo.id} className="p-4 flex items-center justify-between hover:bg-zinc-800/30 transition-colors">
+                                            <div className="flex items-center gap-3">
+                                                <div className="h-10 w-10 rounded-lg bg-zinc-800 flex items-center justify-center border border-zinc-700">
+                                                    <Github className="h-5 w-5 text-zinc-400" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-zinc-100 font-medium">{repo.name}</p>
+                                                    <p className="text-zinc-500 text-xs text-uppercase tracking-wider">Repository</p>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <p className="text-zinc-100 font-medium">{repo.name}</p>
-                                                <p className="text-zinc-500 text-xs text-uppercase tracking-wider">Public Repository</p>
-                                            </div>
-                                        </div>
-                                        <button
-                                            onClick={() => toggleSource(repo.id)}
-                                            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${repo.connected
+                                            <button
+                                                onClick={() => toggleSource(repo.id)}
+                                                className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${repo.connected
                                                     ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
                                                     : "bg-blue-600 text-white hover:bg-blue-500"
-                                                }`}
-                                        >
-                                            {repo.connected ? "Imported" : "Import"}
-                                        </button>
-                                    </div>
-                                ))
+                                                    }`}
+                                            >
+                                                {repo.connected ? "Imported" : "Import"}
+                                            </button>
+                                        </div>
+                                    ))}
+                                </>
                             ) : (
                                 <div className="p-12 flex flex-col items-center justify-center text-center">
-                                    <div className="h-16 w-16 bg-zinc-800/50 rounded-2xl flex items-center justify-center mb-4 border border-zinc-700">
-                                        <Folder className="h-8 w-8 text-zinc-600" />
+                                    <div className="h-16 w-16 bg-zinc-800/50 rounded-2xl flex items-center justify-center mb-6 border border-zinc-700">
+                                        <Github className={`h-8 w-8 ${isToolSyncing ? "text-blue-500 animate-pulse" : "text-zinc-600"}`} />
                                     </div>
-                                    <h4 className="text-zinc-400 font-medium">Authentication Required</h4>
-                                    <p className="text-zinc-500 text-sm mt-1 mb-6">Connect your account above to browse repositories.</p>
+                                    <h4 className="text-zinc-400 font-medium mb-2">{isToolSyncing ? `Fetching ${identity}'s Repositories...` : "Find Your Repositories"}</h4>
+                                    <p className="text-zinc-500 text-sm mb-8 max-w-xs">{isToolSyncing ? "We are scanning your account for public and private code." : "Enter your GitHub username or organization to discover repositories dynamically."}</p>
+
+                                    {!isToolSyncing && (
+                                        <div className="w-full max-w-xs mb-6">
+                                            <input
+                                                type="text"
+                                                value={identity}
+                                                onChange={(e) => setIdentity(e.target.value)}
+                                                placeholder="GitHub Username / Org (e.g. vercel)"
+                                                className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-zinc-100 outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-center placeholder:text-zinc-600"
+                                            />
+                                        </div>
+                                    )}
+
                                     <button
                                         onClick={toggleConnection}
-                                        className="text-blue-400 hover:text-blue-300 font-medium text-sm flex items-center gap-2"
+                                        disabled={isToolSyncing}
+                                        className="bg-white text-black hover:bg-zinc-200 px-8 py-3 rounded-xl font-bold transition-all flex items-center gap-3 shadow-xl disabled:opacity-50"
                                     >
-                                        <Github className="h-4 w-4" /> Link Account Now
+                                        {isToolSyncing ? (
+                                            <>
+                                                <div className="h-4 w-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                                                Scanning...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Github className="h-5 w-5" />
+                                                Connect & Discover
+                                            </>
+                                        )}
                                     </button>
                                 </div>
                             )}

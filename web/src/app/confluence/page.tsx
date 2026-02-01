@@ -6,15 +6,31 @@ import { useIntegrations } from "@/context/IntegrationContext";
 
 
 export default function ConfluencePage() {
-    const { integrations, sources, connectTool, disconnectTool, toggleSource } = useIntegrations();
+    const { integrations, sources, isSyncing, connectTool, disconnectTool, toggleSource, addCustomSource, importAllSources } = useIntegrations();
     const isConnected = integrations.confluence;
+    const isToolSyncing = isSyncing.confluence;
     const confluenceSources = sources.filter(s => s.type === "confluence");
+    const [identity, setIdentity] = React.useState("");
+    const [newSpace, setNewSpace] = React.useState("");
 
     const toggleConnection = () => {
         if (isConnected) {
             disconnectTool("confluence");
+            setIdentity("");
         } else {
-            connectTool("confluence");
+            if (!identity.trim()) {
+                alert("Please enter your Atlassian Site name.");
+                return;
+            }
+            connectTool("confluence", identity);
+        }
+    };
+
+    const handleAddSpace = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (newSpace.trim()) {
+            addCustomSource("confluence", newSpace.trim());
+            setNewSpace("");
         }
     };
 
@@ -72,35 +88,85 @@ export default function ConfluencePage() {
 
                         <div className="divide-y divide-zinc-800">
                             {isConnected ? (
-                                confluenceSources.map(space => (
-                                    <div key={space.id} className="p-4 flex items-center justify-between hover:bg-zinc-800/30 transition-colors">
-                                        <div className="flex items-center gap-3">
-                                            <div className="h-10 w-10 rounded-lg bg-zinc-800 flex items-center justify-center border border-zinc-700">
-                                                <FileText className="h-5 w-5 text-blue-400" />
+                                <>
+                                    <div className="p-4 bg-zinc-800/20">
+                                        <form onSubmit={handleAddSpace} className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                value={newSpace}
+                                                onChange={(e) => setNewSpace(e.target.value)}
+                                                placeholder="Enter space name or key"
+                                                className="flex-1 bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-100 outline-none focus:ring-1 focus:ring-blue-500"
+                                            />
+                                            <button
+                                                type="submit"
+                                                className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-500 transition-colors"
+                                            >
+                                                Add Space
+                                            </button>
+                                        </form>
+                                    </div>
+                                    {confluenceSources.map(space => (
+                                        <div key={space.id} className="p-4 flex items-center justify-between hover:bg-zinc-800/30 transition-colors">
+                                            <div className="flex items-center gap-3">
+                                                <div className="h-10 w-10 rounded-lg bg-zinc-800 flex items-center justify-center border border-zinc-700">
+                                                    <FileText className="h-5 w-5 text-blue-400" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-zinc-100 font-medium">{space.name}</p>
+                                                    <p className="text-zinc-500 text-xs">Confluence Space</p>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <p className="text-zinc-100 font-medium">{space.name}</p>
-                                                <p className="text-zinc-500 text-xs text-uppercase tracking-wider">Wiki Space</p>
-                                            </div>
-                                        </div>
-                                        <button
-                                            onClick={() => toggleSource(space.id)}
-                                            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${space.connected
+                                            <button
+                                                onClick={() => toggleSource(space.id)}
+                                                className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${space.connected
                                                     ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
                                                     : "bg-blue-600 text-white hover:bg-blue-500"
-                                                }`}
-                                        >
-                                            {space.connected ? "Indexed" : "Index"}
-                                        </button>
-                                    </div>
-                                ))
+                                                    }`}
+                                            >
+                                                {space.connected ? "Indexed" : "Index"}
+                                            </button>
+                                        </div>
+                                    ))}
+                                </>
                             ) : (
                                 <div className="p-12 flex flex-col items-center justify-center text-center">
-                                    <div className="h-16 w-16 bg-zinc-800/50 rounded-2xl flex items-center justify-center mb-4 border border-zinc-700">
-                                        <BookOpen className="h-8 w-8 text-zinc-600" />
+                                    <div className="h-16 w-16 bg-zinc-800/50 rounded-2xl flex items-center justify-center mb-6 border border-zinc-700">
+                                        <FileText className={`h-8 w-8 ${isToolSyncing ? "text-blue-500 animate-pulse" : "text-zinc-600"}`} />
                                     </div>
-                                    <h4 className="text-zinc-400 font-medium">No Connection Available</h4>
-                                    <p className="text-zinc-500 text-sm mt-1 mb-6">Index your documentation to enable AI search.</p>
+                                    <h4 className="text-zinc-400 font-medium mb-2">{isToolSyncing ? `Scanning ${identity}.atlassian.net...` : "Find Your Spaces"}</h4>
+                                    <p className="text-zinc-500 text-sm mb-8 max-w-xs">{isToolSyncing ? "We are fetching your documentation spaces." : "Enter your Atlassian site name to discover and link your Confluence spaces."}</p>
+
+                                    {!isToolSyncing && (
+                                        <div className="w-full max-w-xs mb-6 flex items-center bg-zinc-950 border border-zinc-800 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/50">
+                                            <input
+                                                type="text"
+                                                value={identity}
+                                                onChange={(e) => setIdentity(e.target.value)}
+                                                placeholder="site-name"
+                                                className="flex-1 bg-transparent px-4 py-3 text-zinc-100 outline-none text-right"
+                                            />
+                                            <span className="bg-zinc-900 px-4 py-3 text-zinc-500 border-l border-zinc-800 text-sm">.atlassian.net</span>
+                                        </div>
+                                    )}
+
+                                    <button
+                                        onClick={toggleConnection}
+                                        disabled={isToolSyncing}
+                                        className="bg-[#0052CC] hover:bg-[#0747A6] text-white px-8 py-3 rounded-xl font-bold transition-all flex items-center gap-3 shadow-xl disabled:opacity-50"
+                                    >
+                                        {isToolSyncing ? (
+                                            <>
+                                                <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                                Scanning Site...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <FileText className="h-5 w-5" />
+                                                Connect Site
+                                            </>
+                                        )}
+                                    </button>
                                 </div>
                             )}
                         </div>

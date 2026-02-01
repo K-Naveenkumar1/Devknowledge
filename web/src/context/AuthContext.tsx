@@ -6,9 +6,11 @@ import { supabase } from "@/lib/supabase";
 
 type AuthContextType = {
     isAuthenticated: boolean;
+    isLoading: boolean;
     user: { id: string; name: string; email: string; role: string } | null;
     signIn: (email: string, password: string) => Promise<{ error: any }>;
-    signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
+    signUp: (email: string, password: string, fullName: string) => Promise<{ data: any, error: any }>;
+    signInWithGithub: (redirectPath?: string) => Promise<{ error: any }>;
     logout: () => Promise<void>;
 };
 
@@ -16,20 +18,25 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [user, setUser] = useState<{ id: string; name: string; email: string; role: string } | null>(null);
 
     // Initialize from Supabase and localStorage
     useEffect(() => {
         const checkUser = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session?.user) {
-                setIsAuthenticated(true);
-                setUser({
-                    id: session.user.id,
-                    email: session.user.email || "",
-                    name: session.user.user_metadata.full_name || session.user.email?.split("@")[0] || "User",
-                    role: "Developer"
-                });
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session?.user) {
+                    setIsAuthenticated(true);
+                    setUser({
+                        id: session.user.id,
+                        email: session.user.email || "",
+                        name: session.user.user_metadata.full_name || session.user.email?.split("@")[0] || "User",
+                        role: "Developer"
+                    });
+                }
+            } finally {
+                setIsLoading(false);
             }
         };
 
@@ -71,6 +78,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 },
             },
         });
+        return { data, error };
+    };
+
+    const signInWithGithub = async (redirectPath?: string) => {
+        const { data, error } = await supabase.auth.signInWithOAuth({
+            provider: "github",
+            options: {
+                redirectTo: redirectPath || `${window.location.origin}/dashboard`,
+                scopes: "repo read:user",
+            },
+        });
         return { error };
     };
 
@@ -82,7 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     return (
-        <AuthContext.Provider value={{ isAuthenticated, user, signIn, signUp, logout }}>
+        <AuthContext.Provider value={{ isAuthenticated, isLoading, user, signIn, signUp, signInWithGithub, logout }}>
             {children}
         </AuthContext.Provider>
     );
