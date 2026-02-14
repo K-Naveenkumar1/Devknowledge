@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DevKnowledge | Unified Technical Knowledge",
+  title: "Devora | Unified Technical Knowledge",
   description: "Unify access to your distributed technical knowledge across all development tools.",
 };
 

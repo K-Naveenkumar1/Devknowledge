@@ -51,7 +51,7 @@ export default function Sidebar() {
                     <div className="mr-3 flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-blue-400">
                         <Zap className="h-5 w-5 text-white" />
                     </div>
-                    <span className="text-xl font-bold tracking-tight text-white">DevKnowledge</span>
+                    <span className="text-xl font-bold tracking-tight text-white">Devora</span>
                 </div>
 
                 {/* Navigation */}

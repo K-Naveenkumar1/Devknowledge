@@ -16,6 +16,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+
 /* Selection Color matching Overview Page */
 ::selection {
   background-color: rgba(59, 130, 246, 0.3);

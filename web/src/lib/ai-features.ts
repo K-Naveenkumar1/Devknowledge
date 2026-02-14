@@ -10,7 +10,7 @@ import { searchVectorStore } from "./chroma";
 // ------------------------------------------------------------------
 
 const analysisPromptTemplate = `
-You are DevKnowledge AI, an advanced technical assistant. 
+You are Devora AI, an advanced technical assistant. 
 Your goal is to provide deep, reasoning-based answers, not just search results.
 
 Task:

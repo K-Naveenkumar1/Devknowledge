@@ -71,7 +71,7 @@ export default function GitHubPage() {
                                 <div className="h-8 w-8 rounded-full bg-blue-600/20 text-blue-400 flex items-center justify-center flex-shrink-0 text-sm font-bold">1</div>
                                 <div>
                                     <h3 className="text-white font-medium">Link your account</h3>
-                                    <p className="text-zinc-400 text-sm">Grant permission for DevKnowledge to read your repository metadata and PR history.</p>
+                                    <p className="text-zinc-400 text-sm">Grant permission for Devora to read your repository metadata and PR history.</p>
                                 </div>
                             </div>
                             <div className="flex gap-4">
@@ -206,7 +206,7 @@ export default function GitHubPage() {
                             <span className="text-sm font-semibold uppercase tracking-wider">Security First</span>
                         </div>
                         <p className="text-zinc-400 text-sm mb-4 leading-relaxed">
-                            DevKnowledge only requests **Read-Only** access to your repositories. We never store your actual code—only a high-level technical map.
+                            Devora only requests **Read-Only** access to your repositories. We never store your actual code—only a high-level technical map.
                         </p>
                         <a href="#" className="flex items-center gap-1 text-blue-400 text-sm font-medium hover:text-blue-300 transition-colors">
                             Read Security Whitepaper

@@ -37,7 +37,7 @@ export default function SourcesPage() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
                 <div>
                     <h1 className="text-3xl font-bold text-white mb-2">Knowledge Sources</h1>
-                    <p className="text-zinc-400">Manage and explore all technical knowledge indexed by DevKnowledge.</p>
+                    <p className="text-zinc-400">Manage and explore all technical knowledge indexed by Devora.</p>
                 </div>
                 <button
                     onClick={syncAll}
@@ -116,8 +116,8 @@ export default function SourcesPage() {
                                     <button
                                         onClick={() => toggleSource(source.id)}
                                         className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all ${source.connected
-                                                ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
-                                                : "bg-blue-600 text-white hover:bg-blue-500"
+                                            ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
+                                            : "bg-blue-600 text-white hover:bg-blue-500"
                                             }`}
                                     >
                                         {source.connected ? "Imported" : "Import"}

@@ -98,7 +98,7 @@ export default function AssistantChat() {
                 </div>
                 <div>
                     <h3 className="font-semibold text-zinc-100 flex items-center gap-2">
-                        DevKnowledge AI
+                        Devora AI
                         <Sparkles className="h-3 w-3 text-yellow-500" />
                     </h3>
                     <p className="text-xs text-zinc-400">
